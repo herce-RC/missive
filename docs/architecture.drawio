@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mxfile host="app.diagrams.net" modified="2026-02-05T13:11:37.078Z" agent="ArchPulse" version="1.0">
+  <diagram id="architecture" name="tauri-email-client Architecture">
+    <mxGraphModel dx="0" dy="0" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+      <root>
+          <mxCell id="0" />
+          <mxCell id="1" parent="0" />
+          <mxCell id="layer-frontend" value="Frontend" style="swimlane;horizontal=1;startSize=30;fillColor=#ffffff;strokeColor=#3498db;fontColor=#333333;fontStyle=1;fontSize=14;rounded=1;arcSize=5;swimlaneFillColor=#ffffff" vertex="1" parent="1">
+            <mxGeometry x="40" y="40" width="390" height="120" as="geometry" />
+          </mxCell>
+          <mxCell id="layer-root" value="Root" style="swimlane;horizontal=1;startSize=30;fillColor=#ffffff;strokeColor=#bdc3c7;fontColor=#333333;fontStyle=1;fontSize=14;rounded=1;arcSize=5;swimlaneFillColor=#ffffff" vertex="1" parent="1">
+            <mxGeometry x="40" y="220" width="390" height="120" as="geometry" />
+          </mxCell>
+          <mxCell id="layer-stores" value="Stores" style="swimlane;horizontal=1;startSize=30;fillColor=#ffffff;strokeColor=#bdc3c7;fontColor=#333333;fontStyle=1;fontSize=14;rounded=1;arcSize=5;swimlaneFillColor=#ffffff" vertex="1" parent="1">
+            <mxGeometry x="40" y="400" width="390" height="120" as="geometry" />
+          </mxCell>
+          <mxCell id="frontend-app_config_ts" value="app.config" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#3498db;strokeColor=#0165a8;strokeWidth=1;fontColor=#ffffff;fontSize=12;fontStyle=0;arcSize=10;shadow=1" vertex="1" parent="layer-frontend">
+            <mxGeometry x="20" y="50" width="160" height="50" as="geometry" />
+          </mxCell>
+          <mxCell id="root-nuxt_config_ts" value="nuxt.config" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#bdc3c7;strokeColor=#8a9094;strokeWidth=1;fontColor=#ffffff;fontSize=12;fontStyle=0;arcSize=10;shadow=1" vertex="1" parent="layer-root">
+            <mxGeometry x="20" y="50" width="160" height="50" as="geometry" />
+          </mxCell>
+          <mxCell id="root-tailwind_config_js" value="tailwind.config" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#bdc3c7;strokeColor=#8a9094;strokeWidth=1;fontColor=#ffffff;fontSize=12;fontStyle=0;arcSize=10;shadow=1" vertex="1" parent="layer-root">
+            <mxGeometry x="210" y="50" width="160" height="50" as="geometry" />
+          </mxCell>
+          <mxCell id="stores-stores_emailStore_ts" value="emailStore" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#bdc3c7;strokeColor=#8a9094;strokeWidth=1;fontColor=#ffffff;fontSize=12;fontStyle=0;arcSize=10;shadow=1" vertex="1" parent="layer-stores">
+            <mxGeometry x="20" y="50" width="160" height="50" as="geometry" />
+          </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
