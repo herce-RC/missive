@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Tauri Email Client
 
 Un client email moderne développé avec Tauri, **Nuxt 3** et Rust, utilisant SurrealDB comme base de données embarquée.
@@ -170,3 +171,7 @@ Ce projet est sous licence MIT. Voir le fichier `LICENSE` pour plus de détails.
 ## 📞 Support
 
 Pour toute question ou problème, ouvrez une issue sur le dépôt GitHub.
+=======
+# missive
+an email client
+>>>>>>> eec4383af452df986ec3437cf87a279abb2d463e
