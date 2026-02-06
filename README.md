@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # Tauri Email Client
 
 Un client email moderne développé avec Tauri, **Nuxt 3** et Rust, utilisant SurrealDB comme base de données embarquée.
@@ -70,7 +69,7 @@ npm run tauri build
 ## 📁 Structure du projet
 
 ```
-tauri-email-client/
+missive/
 ├── app.vue                  # Layout racine Nuxt
 ├── assets/                  # Styles CSS
 ├── components/              # Composants Vue
@@ -171,7 +170,3 @@ Ce projet est sous licence MIT. Voir le fichier `LICENSE` pour plus de détails.
 ## 📞 Support
 
 Pour toute question ou problème, ouvrez une issue sur le dépôt GitHub.
-=======
-# missive
-an email client
->>>>>>> eec4383af452df986ec3437cf87a279abb2d463e

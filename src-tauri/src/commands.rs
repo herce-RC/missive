@@ -1,4 +1,4 @@
-use crate::models::{Email, EmailAccount, NewEmail, ConnectionTestResult};
+use crate::models::{Email, EmailAccount, NewEmail, ConnectionTestResult, EmailAddress};
 use crate::email::EmailClient;
 use crate::AppState;
 use tauri::State;
@@ -7,6 +7,21 @@ type CommandResult<T> = Result<T, String>;
 
 fn map_err<E: std::fmt::Display>(e: E) -> String {
     e.to_string()
+}
+
+
+async fn resolve_user_ids(db: &crate::database::Database, addrs: &[EmailAddress]) -> CommandResult<Option<Vec<String>>> {
+    let mut ids = Vec::new();
+    for addr in addrs {
+        if let Some(id) = db.get_or_create_user(&addr.email, Some(&addr.name)).await.map_err(map_err)? {
+            ids.push(id);
+        }
+    }
+    if ids.is_empty() {
+        Ok(None)
+    } else {
+        Ok(Some(ids))
+    }
 }
 
 #[tauri::command]
@@ -45,15 +60,31 @@ pub async fn sync_emails(
     // Fetch emails from server
     let emails = client.fetch_emails(&folder, 50).await.map_err(map_err)?;
     
-    // Store in database
-    for email in &emails {
-        // Check if email already exists
+    // Store in database with user links
+    let mut enriched = Vec::with_capacity(emails.len());
+    for mut email in emails {
+        email.from_user_id = db
+            .get_or_create_user(&email.from.email, Some(&email.from.name))
+            .await
+            .map_err(map_err)?;
+        email.to_user_ids = resolve_user_ids(&db, &email.to).await?;
+        email.cc_user_ids = match &email.cc {
+            Some(cc) => resolve_user_ids(&db, cc).await?,
+            None => None,
+        };
+        email.bcc_user_ids = match &email.bcc {
+            Some(bcc) => resolve_user_ids(&db, bcc).await?,
+            None => None,
+        };
+
         if db.get_email(&email.id).await.map_err(map_err)?.is_none() {
-            db.create_email(email).await.map_err(map_err)?;
+            db.create_email(&email).await.map_err(map_err)?;
         }
+
+        enriched.push(email);
     }
     
-    Ok(emails)
+    Ok(enriched)
 }
 
 #[tauri::command]
@@ -75,7 +106,7 @@ pub async fn send_email(
     client.send_email(&email).await.map_err(map_err)?;
     
     // Create sent email record
-    let sent_email = Email {
+    let mut sent_email = Email {
         id: uuid::Uuid::new_v4().to_string(),
         from: email.from,
         to: email.to,
@@ -91,6 +122,24 @@ pub async fn send_email(
         attachments: email.attachments,
         account_id: Some(account.id.clone()),
         message_id: None,
+        from_user_id: None,
+        to_user_ids: None,
+        cc_user_ids: None,
+        bcc_user_ids: None,
+    };
+
+    sent_email.from_user_id = db
+        .get_or_create_user(&sent_email.from.email, Some(&sent_email.from.name))
+        .await
+        .map_err(map_err)?;
+    sent_email.to_user_ids = resolve_user_ids(&db, &sent_email.to).await?;
+    sent_email.cc_user_ids = match &sent_email.cc {
+        Some(cc) => resolve_user_ids(&db, cc).await?,
+        None => None,
+    };
+    sent_email.bcc_user_ids = match &sent_email.bcc {
+        Some(bcc) => resolve_user_ids(&db, bcc).await?,
+        None => None,
     };
     
     // Store in database
@@ -167,15 +216,25 @@ pub async fn save_account(
     account: EmailAccount,
 ) -> CommandResult<EmailAccount> {
     let db = state.db.lock().await;
-    
-    // Check if account exists
+    let mut account = account;
+
+    account.user_id = db
+        .get_or_create_user(&account.email, Some(&account.name))
+        .await
+        .map_err(map_err)?;
+
+    // Prefer id if it exists, otherwise upsert by email to avoid duplicates
     if let Some(_) = db.get_account(&account.id).await.map_err(map_err)? {
-        // Update existing
-        db.update_account(&account).await.map_err(map_err)
-    } else {
-        // Create new
-        db.create_account(&account).await.map_err(map_err)
+        return db.update_account(&account).await.map_err(map_err);
     }
+
+    if let Some(existing) = db.get_account_by_email(&account.email).await.map_err(map_err)? {
+        let mut updated = account.clone();
+        updated.id = existing.id;
+        return db.update_account(&updated).await.map_err(map_err);
+    }
+
+    db.create_account(&account).await.map_err(map_err)
 }
 
 #[tauri::command]

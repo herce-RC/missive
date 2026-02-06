@@ -1,9 +1,17 @@
 use serde::{Deserialize, Serialize};
 use chrono::Utc;
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+#[serde(default)]
 pub struct EmailAddress {
     pub name: String,
+    pub email: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct User {
+    pub id: String,
+    pub name: Option<String>,
     pub email: String,
 }
 
@@ -42,6 +50,18 @@ pub struct Email {
     pub account_id: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub message_id: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(rename = "fromUserId")]
+    pub from_user_id: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(rename = "toUserIds")]
+    pub to_user_ids: Option<Vec<String>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(rename = "ccUserIds")]
+    pub cc_user_ids: Option<Vec<String>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(rename = "bccUserIds")]
+    pub bcc_user_ids: Option<Vec<String>>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -65,6 +85,9 @@ pub struct EmailAccount {
     pub allow_invalid_certs: bool,
     #[serde(rename = "allowInvalidSmtpCerts")]
     pub allow_invalid_smtp_certs: bool,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(rename = "userId")]
+    pub user_id: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -111,6 +134,10 @@ impl Email {
             attachments: None,
             account_id: None,
             message_id: None,
+            from_user_id: None,
+            to_user_ids: None,
+            cc_user_ids: None,
+            bcc_user_ids: None,
         }
     }
 }
@@ -142,6 +169,7 @@ impl EmailAccount {
             use_ssl,
             allow_invalid_certs,
             allow_invalid_smtp_certs,
+            user_id: None,
         }
     }
 }

@@ -94,20 +94,24 @@ const toggleStar = () => {
 </script>
 
 <template>
-  <div v-if="email" class="flex h-full flex-col bg-gray-50">
-    <div class="flex items-center justify-between border-b border-gray-200 bg-white px-4 py-3">
+  <div v-if="email" class="flex h-full flex-col bg-gray-50 dark:bg-gray-950">
+    <div class="flex items-center justify-between border-b border-gray-200 bg-white px-4 py-3 dark:border-gray-800 dark:bg-gray-900">
       <UButton variant="ghost" color="neutral" @click="goBack">
         <UIcon name="i-heroicons-arrow-left" />
+        <span class="ml-1">Retour</span>
       </UButton>
       <div class="flex gap-2">
         <UButton variant="ghost" color="neutral" @click="deleteEmail">
           <UIcon name="i-heroicons-trash" />
+          <span class="ml-1">Supprimer</span>
         </UButton>
         <UButton variant="ghost" color="neutral" @click="emailStore.markAsUnread(email.id)">
           <UIcon name="i-heroicons-envelope" />
+          <span class="ml-1">Non lu</span>
         </UButton>
         <UButton variant="ghost" color="neutral" @click="toggleStar">
           <UIcon :name="email.starred ? 'i-heroicons-star-solid' : 'i-heroicons-star'" />
+          <span class="ml-1">Favori</span>
         </UButton>
       </div>
     </div>
@@ -138,7 +142,7 @@ const toggleStar = () => {
           </div>
         </template>
 
-        <div class="whitespace-pre-wrap text-sm text-gray-700">
+        <div class="whitespace-pre-wrap text-sm text-gray-700 dark:text-gray-200">
           <div v-if="email.htmlBody" v-html="email.htmlBody"></div>
           <pre v-else class="whitespace-pre-wrap font-sans">{{ email.body }}</pre>
         </div>
@@ -156,6 +160,7 @@ const toggleStar = () => {
               </div>
               <UButton variant="ghost" color="neutral">
                 <UIcon name="i-heroicons-arrow-down-tray" />
+                <span class="ml-1">Télécharger</span>
               </UButton>
             </UCard>
           </div>
@@ -163,14 +168,14 @@ const toggleStar = () => {
       </UCard>
     </div>
 
-    <div class="flex gap-2 border-t border-gray-200 bg-white px-4 py-3">
+    <div class="flex gap-2 border-t border-gray-200 bg-white px-4 py-3 dark:border-gray-800 dark:bg-gray-900">
       <UButton variant="soft" color="primary" @click="reply">Répondre</UButton>
       <UButton variant="soft" color="primary" @click="replyAll">Répondre à tous</UButton>
       <UButton variant="soft" color="primary" @click="forward">Transférer</UButton>
     </div>
   </div>
 
-  <div v-else class="flex h-full items-center justify-center bg-gray-50">
+  <div v-else class="flex h-full items-center justify-center bg-gray-50 dark:bg-gray-950">
     <UCard class="text-center">
       <p class="text-gray-500">Email non trouvé</p>
       <UButton class="mt-3" color="primary" @click="goBack">Retour</UButton>

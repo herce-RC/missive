@@ -34,10 +34,12 @@ const hasSelected = computed(() => emailStore.selectedEmails.length > 0)
 
 watch(currentFolder, (newFolder) => {
   emailStore.setCurrentFolder(newFolder)
+  emailStore.refreshEmails()
 })
 
 onMounted(() => {
   emailStore.setCurrentFolder(currentFolder.value)
+  emailStore.refreshEmails()
 })
 
 const handleSelectAll = () => {
@@ -68,7 +70,7 @@ const handleMarkAsUnread = () => {
     <div class="flex items-center justify-between border-b border-gray-200 bg-white px-4 py-3">
       <div class="flex items-center gap-2">
         <UCheckbox :model-value="hasSelected" @update:modelValue="handleSelectAll" />
-        <UButton variant="ghost" color="neutral" @click="emailStore.fetchEmails(true)">
+        <UButton variant="ghost" color="neutral" @click="emailStore.refreshEmails()">
           <UIcon name="i-heroicons-arrow-path" />
         </UButton>
 
@@ -95,6 +97,18 @@ const handleMarkAsUnread = () => {
         <UButton variant="ghost" color="neutral"><UIcon name="i-heroicons-chevron-left" /></UButton>
         <UButton variant="ghost" color="neutral"><UIcon name="i-heroicons-chevron-right" /></UButton>
       </div>
+    </div>
+
+
+    <div v-if="emailStore.error" class="px-4 py-3">
+      <UAlert color="error" variant="soft"><span class="whitespace-pre-wrap text-sm">{{ emailStore.error }}</span></UAlert>
+    </div>
+
+
+    <div v-if="emailStore.syncStatus" class="px-4 py-3">
+      <UAlert :color="emailStore.syncStatus.type === 'success' ? 'success' : 'error'" variant="soft">
+        <span class="whitespace-pre-wrap text-sm">{{ emailStore.syncStatus.message }}</span>
+      </UAlert>
     </div>
 
     <div class="flex-1 overflow-hidden">

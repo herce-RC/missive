@@ -95,8 +95,16 @@ impl EmailClient {
                 .login(account.username, account.password)
                 .map_err(|e| EmailError::AuthError(e.0.to_string()))?;
 
+            let imap_folder = match folder.as_str() {
+                "inbox" => "INBOX",
+                "sent" => "Sent",
+                "drafts" => "Drafts",
+                "trash" => "Trash",
+                other => other,
+            };
+
             session
-                .select(&folder)
+                .select(imap_folder)
                 .map_err(|e| EmailError::ImapError(e.to_string()))?;
 
             let uids_set = session
@@ -178,6 +186,10 @@ impl EmailClient {
                     attachments: None,
                     account_id: Some(account.id.clone()),
                     message_id,
+                    from_user_id: None,
+                    to_user_ids: None,
+                    cc_user_ids: None,
+                    bcc_user_ids: None,
                 };
 
                 result.push(email);

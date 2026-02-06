@@ -20,12 +20,12 @@ pub fn run() {
         .plugin(tauri_plugin_shell::init())
         .setup(|app| {
             let handle = app.handle().clone();
-            let data_dir = handle
-                .path()
-                .app_data_dir()
-                .unwrap_or_else(|_| std::env::temp_dir().join("tauri-email-client"));
+            let home_dir = std::env::var("HOME")
+                .map(PathBuf::from)
+                .unwrap_or_else(|_| std::env::temp_dir());
+            let data_dir = home_dir.join(".local/share/missive");
             std::fs::create_dir_all(&data_dir)?;
-            let db_path: PathBuf = data_dir.join("surreal.db");
+            let db_path: PathBuf = data_dir.join("surrealdb");
             println!("SurrealDB path: {}", db_path.display());
 
             let db = tauri::async_runtime::block_on(Database::new(&db_path))

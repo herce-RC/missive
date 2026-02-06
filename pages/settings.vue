@@ -1,15 +1,19 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, watch, computed } from 'vue'
 import { invoke } from '@tauri-apps/api/core'
 import { useEmailStore, type EmailAccount } from '~/stores/emailStore'
 
 const router = useRouter()
 const emailStore = useEmailStore()
+const colorMode = useColorMode()
 
 const activeTab = ref('accounts')
 const showAddAccount = ref(false)
+const editingAccountId = ref<string | null>(null)
+const isEditing = computed(() => editingAccountId.value !== null)
 const isTestingConnection = ref(false)
 const testResult = ref<{ success: boolean; message: string } | null>(null)
+const saveResult = ref<{ success: boolean; message: string } | null>(null)
 const dbPath = ref<string | null>(null)
 
 const newAccount = ref<Omit<EmailAccount, 'id'>>({
@@ -41,6 +45,27 @@ const resetForm = () => {
     allowInvalidSmtpCerts: false
   }
   testResult.value = null
+  saveResult.value = null
+  editingAccountId.value = null
+}
+
+
+const openEditAccount = (account: EmailAccount) => {
+  editingAccountId.value = account.id
+  newAccount.value = {
+    email: account.email,
+    name: account.name,
+    imapServer: account.imapServer,
+    imapPort: account.imapPort,
+    smtpServer: account.smtpServer,
+    smtpPort: account.smtpPort,
+    username: account.username,
+    password: account.password,
+    useSsl: account.useSsl,
+    allowInvalidCerts: account.allowInvalidCerts,
+    allowInvalidSmtpCerts: account.allowInvalidSmtpCerts
+  }
+  showAddAccount.value = true
 }
 
 const testConnection = async () => {
@@ -78,10 +103,22 @@ const saveAccount = async () => {
     return
   }
 
-  await emailStore.addAccount(newAccount.value)
-  showAddAccount.value = false
-  resetForm()
+  try {
+    if (isEditing.value && editingAccountId.value) {
+      await emailStore.updateAccount({
+        id: editingAccountId.value,
+        ...newAccount.value
+      })
+      saveResult.value = { success: true, message: 'Compte mis à jour avec succès.' }
+    } else {
+      await emailStore.addAccount(newAccount.value)
+      saveResult.value = { success: true, message: 'Compte enregistré avec succès.' }
+    }
+  } catch (error) {
+    saveResult.value = { success: false, message: 'Échec de la sauvegarde du compte. Vérifiez vos paramètres et réessayez.' }
+  }
 }
+
 
 const deleteAccount = async (id: string) => {
   if (confirm('Êtes-vous sûr de vouloir supprimer ce compte ?')) {
@@ -135,15 +172,26 @@ const densityOptions = [
   { label: 'Compact', value: 'compact' }
 ]
 
-const selectedTheme = ref('light')
+const selectedTheme = ref(colorMode.preference || 'system')
 const selectedDensity = ref('comfortable')
+
+
+watch(showAddAccount, (open) => {
+  if (!open) {
+    resetForm()
+  }
+})
+
+watch(selectedTheme, (value) => {
+  colorMode.preference = value
+})
 
 loadDbPath()
 </script>
 
 <template>
-  <div class="flex h-full flex-col bg-gray-50">
-    <div class="flex items-center gap-3 border-b border-gray-200 bg-white px-4 py-3">
+  <div class="flex h-full flex-col bg-gray-50 dark:bg-gray-950">
+    <div class="flex items-center gap-3 border-b border-gray-200 bg-white px-4 py-3 dark:border-gray-800 dark:bg-gray-900">
       <UButton variant="ghost" color="neutral" @click="goBack">
         <UIcon name="i-heroicons-arrow-left" />
       </UButton>
@@ -151,7 +199,7 @@ loadDbPath()
     </div>
 
     <div class="flex flex-1 overflow-hidden">
-      <aside class="w-64 border-r border-gray-200 bg-white p-4">
+      <aside class="w-64 border-r border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900">
         <div class="space-y-2">
           <UButton :variant="activeTab === 'accounts' ? 'soft' : 'ghost'" color="primary" block @click="activeTab = 'accounts'">
             <template #leading><UIcon name="i-heroicons-envelope" /></template>
@@ -189,12 +237,14 @@ loadDbPath()
                     <div class="text-xs text-gray-500">{{ account.email }}</div>
                   </div>
                 </div>
-                <div class="flex gap-2">
-                  <UButton variant="ghost" color="neutral">
+                <div class="flex flex-wrap items-center gap-2">
+                  <UButton variant="soft" color="primary" size="sm" @click="openEditAccount(account)">
                     <UIcon name="i-heroicons-pencil" />
+                    <span class="ml-1">Modifier</span>
                   </UButton>
-                  <UButton variant="ghost" color="neutral" @click="deleteAccount(account.id)">
+                  <UButton variant="soft" color="red" size="sm" @click="deleteAccount(account.id)">
                     <UIcon name="i-heroicons-trash" />
+                    <span class="ml-1">Supprimer</span>
                   </UButton>
                 </div>
               </div>
@@ -247,84 +297,90 @@ loadDbPath()
       </div>
     </div>
 
-    <UModal v-model:open="showAddAccount">
-      <template #content>
-        <UCard class="w-full max-w-2xl">
-          <template #header>
-            <div class="flex items-center justify-between">
-              <h2 class="text-lg font-medium">Ajouter un compte email</h2>
-              <UButton variant="ghost" color="neutral" @click="showAddAccount = false">
-                <UIcon name="i-heroicons-x-mark" />
-              </UButton>
-            </div>
-          </template>
+    <UModal v-model="showAddAccount">
+      <UCard class="w-full max-w-2xl">
+        <template #header>
+          <div class="flex items-center justify-between">
+            <h2 class="text-lg font-medium">{{ isEditing ? 'Modifier un compte email' : 'Ajouter un compte email' }}</h2>
+            <UButton variant="ghost" color="neutral" @click="showAddAccount = false">
+              <UIcon name="i-heroicons-x-mark" />
+            </UButton>
+          </div>
+        </template>
 
-          <div class="space-y-4">
-            <div class="space-y-2">
-              <p class="text-sm text-gray-500">Configuration rapide :</p>
-              <div class="flex gap-2">
-                <UButton variant="soft" color="primary" @click="autoFillProvider('gmail')">Gmail</UButton>
-                <UButton variant="soft" color="primary" @click="autoFillProvider('outlook')">Outlook</UButton>
-                <UButton variant="soft" color="primary" @click="autoFillProvider('yahoo')">Yahoo</UButton>
-              </div>
+        <div class="space-y-4">
+          <div class="space-y-2">
+            <p class="text-sm text-gray-500">Configuration rapide :</p>
+            <div class="flex gap-2">
+              <UButton variant="soft" color="primary" @click="autoFillProvider('gmail')">Gmail</UButton>
+              <UButton variant="soft" color="primary" @click="autoFillProvider('outlook')">Outlook</UButton>
+              <UButton variant="soft" color="primary" @click="autoFillProvider('yahoo')">Yahoo</UButton>
             </div>
-
-            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <div class="space-y-2">
-                <label class="text-sm text-gray-600">Nom affiché</label>
-                <UInput v-model="newAccount.name" placeholder="Mon nom" />
-              </div>
-              <div class="space-y-2">
-                <label class="text-sm text-gray-600">Adresse email *</label>
-                <UInput v-model="newAccount.email" type="email" placeholder="email@example.com" />
-              </div>
-              <div class="space-y-2">
-                <label class="text-sm text-gray-600">Nom d'utilisateur</label>
-                <UInput v-model="newAccount.username" placeholder="Nom d'utilisateur" />
-              </div>
-              <div class="space-y-2">
-                <label class="text-sm text-gray-600">Mot de passe *</label>
-                <UInput v-model="newAccount.password" type="password" placeholder="Mot de passe" />
-              </div>
-              <div class="space-y-2">
-                <label class="text-sm text-gray-600">Serveur IMAP *</label>
-                <UInput v-model="newAccount.imapServer" placeholder="imap.example.com" />
-              </div>
-              <div class="space-y-2">
-                <label class="text-sm text-gray-600">Port IMAP</label>
-                <UInput v-model.number="newAccount.imapPort" type="number" />
-              </div>
-              <div class="space-y-2">
-                <label class="text-sm text-gray-600">Serveur SMTP *</label>
-                <UInput v-model="newAccount.smtpServer" placeholder="smtp.example.com" />
-              </div>
-              <div class="space-y-2">
-                <label class="text-sm text-gray-600">Port SMTP</label>
-                <UInput v-model.number="newAccount.smtpPort" type="number" />
-              </div>
-            </div>
-
-            <div class="space-y-2">
-              <UCheckbox v-model="newAccount.useSsl" label="Utiliser SSL/TLS" />
-              <UCheckbox v-model="newAccount.allowInvalidCerts" label="Ignorer la vérification SSL (IMAP)" />
-              <UCheckbox v-model="newAccount.allowInvalidSmtpCerts" label="Ignorer la vérification SSL (SMTP)" />
-            </div>
-
-            <UAlert v-if="testResult" :color="testResult.success ? 'primary' : 'red'" variant="soft">
-              {{ testResult.message }}
-            </UAlert>
           </div>
 
-          <template #footer>
+          <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div class="space-y-2">
+              <label class="text-sm text-gray-600">Nom affiché</label>
+              <UInput v-model="newAccount.name" placeholder="Mon nom" />
+            </div>
+            <div class="space-y-2">
+              <label class="text-sm text-gray-600">Adresse email *</label>
+              <UInput v-model="newAccount.email" type="email" placeholder="email@example.com" />
+            </div>
+            <div class="space-y-2">
+              <label class="text-sm text-gray-600">Nom d'utilisateur</label>
+              <UInput v-model="newAccount.username" placeholder="Nom d'utilisateur" />
+            </div>
+            <div class="space-y-2">
+              <label class="text-sm text-gray-600">Mot de passe *</label>
+              <UInput v-model="newAccount.password" type="password" placeholder="Mot de passe" />
+            </div>
+            <div class="space-y-2">
+              <label class="text-sm text-gray-600">Serveur IMAP *</label>
+              <UInput v-model="newAccount.imapServer" placeholder="imap.example.com" />
+            </div>
+            <div class="space-y-2">
+              <label class="text-sm text-gray-600">Port IMAP</label>
+              <UInput v-model.number="newAccount.imapPort" type="number" />
+            </div>
+            <div class="space-y-2">
+              <label class="text-sm text-gray-600">Serveur SMTP *</label>
+              <UInput v-model="newAccount.smtpServer" placeholder="smtp.example.com" />
+            </div>
+            <div class="space-y-2">
+              <label class="text-sm text-gray-600">Port SMTP</label>
+              <UInput v-model.number="newAccount.smtpPort" type="number" />
+            </div>
+          </div>
+
+          <div class="space-y-2">
+            <UCheckbox v-model="newAccount.useSsl" label="Utiliser SSL/TLS" />
+            <UCheckbox v-model="newAccount.allowInvalidCerts" label="Ignorer la vérification SSL (IMAP)" />
+            <UCheckbox v-model="newAccount.allowInvalidSmtpCerts" label="Ignorer la vérification SSL (SMTP)" />
+          </div>
+
+        </div>
+
+        <template #footer>
+          <div class="flex flex-col gap-3">
+            <UAlert v-if="testResult" :color="testResult.success ? 'success' : 'error'" variant="solid">
+              <div class="text-sm font-medium">{{ testResult.success ? 'Connexion réussie' : 'Connexion échouée' }}</div>
+              <div class="text-xs whitespace-pre-wrap opacity-90">{{ testResult.message }}</div>
+            </UAlert>
+            <UAlert v-if="saveResult" :color="saveResult.success ? 'success' : 'error'" variant="soft">
+              <div class="text-sm font-medium">{{ saveResult.success ? 'Enregistrement réussi' : 'Enregistrement échoué' }}</div>
+              <div class="text-xs whitespace-pre-wrap">{{ saveResult.message }}</div>
+            </UAlert>
+
             <div class="flex items-center justify-end gap-2">
               <UButton variant="soft" color="primary" :loading="isTestingConnection" @click="testConnection">
                 {{ isTestingConnection ? 'Test en cours...' : 'Tester la connexion' }}
               </UButton>
               <UButton color="primary" @click="saveAccount">Enregistrer</UButton>
             </div>
-          </template>
-        </UCard>
-      </template>
+          </div>
+        </template>
+      </UCard>
     </UModal>
   </div>
 </template>

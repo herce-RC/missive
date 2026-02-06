@@ -119,11 +119,12 @@ const close = () => {
 </script>
 
 <template>
-  <div class="flex h-full flex-col bg-gray-50">
-    <div class="flex items-center justify-between border-b border-gray-200 bg-white px-4 py-3">
+  <div class="flex h-full flex-col bg-gray-50 dark:bg-gray-950">
+    <div class="flex items-center justify-between border-b border-gray-200 bg-white px-4 py-3 dark:border-gray-800 dark:bg-gray-900">
       <h2 class="text-base font-medium">Nouveau message</h2>
       <UButton variant="ghost" color="neutral" @click="close">
         <UIcon name="i-heroicons-x-mark" />
+        <span class="ml-1">Fermer</span>
       </UButton>
     </div>
 
@@ -159,29 +160,32 @@ const close = () => {
       </UCard>
     </div>
 
-    <div class="flex items-center justify-between border-t border-gray-200 bg-white px-4 py-3">
+    <div class="flex items-center justify-between border-t border-gray-200 bg-white px-4 py-3 dark:border-gray-800 dark:bg-gray-900">
       <UButton color="primary" :loading="isSending" @click="sendEmail">
-        <template #leading>
-          <UIcon name="i-heroicons-paper-airplane" />
-        </template>
-        {{ isSending ? 'Envoi en cours...' : 'Envoyer' }}
+        <UIcon name="i-heroicons-paper-airplane" />
+        <span class="ml-1">{{ isSending ? 'Envoi en cours...' : 'Envoyer' }}</span>
       </UButton>
 
       <div class="flex items-center gap-2">
-        <UButton variant="ghost" color="neutral" title="Pièce jointe">
-          <UIcon name="i-heroicons-paper-clip" />
-        </UButton>
-        <UButton variant="ghost" color="neutral" title="Insérer un lien">
-          <UIcon name="i-heroicons-link" />
-        </UButton>
-        <UButton variant="ghost" color="neutral" title="Insérer une image">
-          <UIcon name="i-heroicons-photo" />
-        </UButton>
-        <UButton variant="ghost" color="neutral" title="Enregistrer le brouillon" @click="saveDraft">
+        <UButton variant="ghost" color="neutral" @click="saveDraft">
           <UIcon name="i-heroicons-arrow-down-tray" />
+          <span class="ml-1">Brouillon</span>
         </UButton>
-        <UButton variant="ghost" color="neutral" title="Supprimer" @click="discardDraft">
+        <UButton variant="ghost" color="neutral">
+          <UIcon name="i-heroicons-paper-clip" />
+          <span class="ml-1">Pièce jointe</span>
+        </UButton>
+        <UButton variant="ghost" color="neutral">
+          <UIcon name="i-heroicons-link" />
+          <span class="ml-1">Lien</span>
+        </UButton>
+        <UButton variant="ghost" color="neutral">
+          <UIcon name="i-heroicons-photo" />
+          <span class="ml-1">Image</span>
+        </UButton>
+        <UButton variant="ghost" color="neutral" @click="discardDraft">
           <UIcon name="i-heroicons-trash" />
+          <span class="ml-1">Supprimer</span>
         </UButton>
       </div>
     </div>

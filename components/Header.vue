@@ -10,7 +10,7 @@ const handleSearch = () => {
 }
 
 const refreshEmails = async () => {
-  await emailStore.fetchEmails(true)
+  await emailStore.refreshEmails()
 }
 </script>
 
