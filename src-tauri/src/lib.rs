@@ -8,6 +8,7 @@ use std::sync::Arc;
 use tokio::sync::Mutex;
 use database::Database;
 use std::path::PathBuf;
+use env_logger;
 
 pub struct AppState {
     pub db: Arc<Mutex<Database>>,
@@ -16,6 +17,11 @@ pub struct AppState {
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
+
+    let _ = env_logger::builder()
+        .format_timestamp_millis()
+        .try_init();
+
     tauri::Builder::default()
         .plugin(tauri_plugin_shell::init())
         .setup(|app| {
@@ -51,6 +57,8 @@ pub fn run() {
             commands::remove_account,
             commands::get_accounts,
             commands::test_connection,
+            commands::test_imap_connection,
+            commands::test_smtp_connection,
             commands::sync_emails,
             commands::get_db_path,
         ])

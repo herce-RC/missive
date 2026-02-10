@@ -1,5 +1,5 @@
 {
-  "name": "tauri-email-client",
+  "name": "issive",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -8,7 +8,8 @@
     "build": "nuxt build",
     "generate": "nuxt generate",
     "preview": "nuxt preview",
-    "tauri": "tauri"
+    "tauri": "tauri",
+    "tauri:build": "NO_STRIP=true tauri build"
   },
   "dependencies": {
     "@nuxt/ui": "^2.22.3",

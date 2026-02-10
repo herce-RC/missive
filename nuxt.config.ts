@@ -8,7 +8,7 @@ export default defineNuxtConfig({
   app: {
     baseURL: './',
     head: {
-      title: 'Email Client'
+      title: 'Missive'
     }
   },
   css: ['~/assets/tailwind.css', '~/assets/main.css'],

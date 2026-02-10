@@ -12,7 +12,11 @@ const showAddAccount = ref(false)
 const editingAccountId = ref<string | null>(null)
 const isEditing = computed(() => editingAccountId.value !== null)
 const isTestingConnection = ref(false)
+const isTestingImap = ref(false)
+const isTestingSmtp = ref(false)
 const testResult = ref<{ success: boolean; message: string } | null>(null)
+const testImapResult = ref<{ success: boolean; message: string } | null>(null)
+const testSmtpResult = ref<{ success: boolean; message: string } | null>(null)
 const saveResult = ref<{ success: boolean; message: string } | null>(null)
 const dbPath = ref<string | null>(null)
 
@@ -45,6 +49,8 @@ const resetForm = () => {
     allowInvalidSmtpCerts: false
   }
   testResult.value = null
+  testImapResult.value = null
+  testSmtpResult.value = null
   saveResult.value = null
   editingAccountId.value = null
 }
@@ -94,6 +100,65 @@ const testConnection = async () => {
     testResult.value = { success: false, message: 'Échec de la connexion. Vérifiez vos paramètres.' }
   } finally {
     isTestingConnection.value = false
+  }
+}
+
+
+const testImapConnection = async () => {
+  isTestingImap.value = true
+  testImapResult.value = null
+
+  try {
+    const result = await invoke<{ success: boolean; message: string }>('test_imap_connection', {
+      account: {
+        id: 'temp',
+        email: newAccount.value.email,
+        name: newAccount.value.name,
+        imapServer: newAccount.value.imapServer,
+        imapPort: newAccount.value.imapPort,
+        smtpServer: newAccount.value.smtpServer,
+        smtpPort: newAccount.value.smtpPort,
+        username: newAccount.value.username || newAccount.value.email,
+        password: newAccount.value.password,
+        useSsl: newAccount.value.useSsl,
+        allowInvalidCerts: newAccount.value.allowInvalidCerts,
+        allowInvalidSmtpCerts: newAccount.value.allowInvalidSmtpCerts
+      }
+    })
+    testImapResult.value = result
+  } catch (error) {
+    testImapResult.value = { success: false, message: 'Échec de la connexion IMAP. Vérifiez vos paramètres.' }
+  } finally {
+    isTestingImap.value = false
+  }
+}
+
+const testSmtpConnection = async () => {
+  isTestingSmtp.value = true
+  testSmtpResult.value = null
+
+  try {
+    const result = await invoke<{ success: boolean; message: string }>('test_smtp_connection', {
+      account: {
+        id: 'temp',
+        email: newAccount.value.email,
+        name: newAccount.value.name,
+        imapServer: newAccount.value.imapServer,
+        imapPort: newAccount.value.imapPort,
+        smtpServer: newAccount.value.smtpServer,
+        smtpPort: newAccount.value.smtpPort,
+        username: newAccount.value.username || newAccount.value.email,
+        password: newAccount.value.password,
+        useSsl: newAccount.value.useSsl,
+        allowInvalidCerts: newAccount.value.allowInvalidCerts,
+        allowInvalidSmtpCerts: newAccount.value.allowInvalidSmtpCerts
+      }
+    })
+    testSmtpResult.value = result
+  } catch (error) {
+    testSmtpResult.value = { success: false, message: 'Échec de la connexion SMTP. Vérifiez vos paramètres.' }
+  } finally {
+    isTestingSmtp.value = false
   }
 }
 
@@ -364,17 +429,31 @@ loadDbPath()
         <template #footer>
           <div class="flex flex-col gap-3">
             <UAlert v-if="testResult" :color="testResult.success ? 'success' : 'error'" variant="solid">
-              <div class="text-sm font-medium">{{ testResult.success ? 'Connexion réussie' : 'Connexion échouée' }}</div>
+              <div class="text-sm font-medium">{{ testResult.success ? 'Connexion réussie (IMAP+SMTP)' : 'Connexion complète échouée' }}</div>
               <div class="text-xs whitespace-pre-wrap opacity-90">{{ testResult.message }}</div>
+            </UAlert>
+            <UAlert v-if="testImapResult" :color="testImapResult.success ? 'success' : 'error'" variant="soft">
+              <div class="text-sm font-medium">{{ testImapResult.success ? 'IMAP OK' : 'IMAP KO' }}</div>
+              <div class="text-xs whitespace-pre-wrap">{{ testImapResult.message }}</div>
+            </UAlert>
+            <UAlert v-if="testSmtpResult" :color="testSmtpResult.success ? 'success' : 'error'" variant="soft">
+              <div class="text-sm font-medium">{{ testSmtpResult.success ? 'SMTP OK' : 'SMTP KO' }}</div>
+              <div class="text-xs whitespace-pre-wrap">{{ testSmtpResult.message }}</div>
             </UAlert>
             <UAlert v-if="saveResult" :color="saveResult.success ? 'success' : 'error'" variant="soft">
               <div class="text-sm font-medium">{{ saveResult.success ? 'Enregistrement réussi' : 'Enregistrement échoué' }}</div>
               <div class="text-xs whitespace-pre-wrap">{{ saveResult.message }}</div>
             </UAlert>
 
-            <div class="flex items-center justify-end gap-2">
+            <div class="flex flex-wrap items-center justify-end gap-2">
+              <UButton variant="soft" color="neutral" :loading="isTestingImap" @click="testImapConnection">
+                {{ isTestingImap ? 'Test IMAP...' : 'Tester IMAP' }}
+              </UButton>
+              <UButton variant="soft" color="neutral" :loading="isTestingSmtp" @click="testSmtpConnection">
+                {{ isTestingSmtp ? 'Test SMTP...' : 'Tester SMTP' }}
+              </UButton>
               <UButton variant="soft" color="primary" :loading="isTestingConnection" @click="testConnection">
-                {{ isTestingConnection ? 'Test en cours...' : 'Tester la connexion' }}
+                {{ isTestingConnection ? 'Test complet...' : 'Test complet' }}
               </UButton>
               <UButton color="primary" @click="saveAccount">Enregistrer</UButton>
             </div>

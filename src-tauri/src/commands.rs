@@ -274,6 +274,42 @@ pub async fn test_connection(
 }
 
 #[tauri::command]
+pub async fn test_imap_connection(
+    account: EmailAccount,
+) -> CommandResult<ConnectionTestResult> {
+    let client = EmailClient::new(account);
+
+    match client.test_imap().await {
+        Ok(_) => Ok(ConnectionTestResult {
+            success: true,
+            message: "Connexion IMAP réussie !".to_string(),
+        }),
+        Err(e) => Ok(ConnectionTestResult {
+            success: false,
+            message: format!("Échec IMAP: {}", e),
+        }),
+    }
+}
+
+#[tauri::command]
+pub async fn test_smtp_connection(
+    account: EmailAccount,
+) -> CommandResult<ConnectionTestResult> {
+    let client = EmailClient::new(account);
+
+    match client.test_smtp().await {
+        Ok(_) => Ok(ConnectionTestResult {
+            success: true,
+            message: "Connexion SMTP réussie !".to_string(),
+        }),
+        Err(e) => Ok(ConnectionTestResult {
+            success: false,
+            message: format!("Échec SMTP: {}", e),
+        }),
+    }
+}
+
+#[tauri::command]
 pub async fn get_db_path(
     state: State<'_, AppState>,
 ) -> CommandResult<String> {

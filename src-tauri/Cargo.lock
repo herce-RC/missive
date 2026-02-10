@@ -3,6 +3,29 @@
 version = 4
 
 [[package]]
+name = "Missive"
+version = "0.1.0"
+dependencies = [
+ "chrono",
+ "env_logger",
+ "imap",
+ "lettre",
+ "log",
+ "mailparse",
+ "native-tls",
+ "serde",
+ "serde_json",
+ "surrealdb",
+ "tauri",
+ "tauri-build",
+ "tauri-plugin-shell",
+ "tempfile",
+ "thiserror 1.0.69",
+ "tokio",
+ "uuid",
+]
+
+[[package]]
 name = "addr"
 version = "0.15.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -6226,29 +6249,6 @@ dependencies = [
  "url",
  "uuid",
  "walkdir",
-]
-
-[[package]]
-name = "tauri-email-client"
-version = "0.1.0"
-dependencies = [
- "chrono",
- "env_logger",
- "imap",
- "lettre",
- "log",
- "mailparse",
- "native-tls",
- "serde",
- "serde_json",
- "surrealdb",
- "tauri",
- "tauri-build",
- "tauri-plugin-shell",
- "tempfile",
- "thiserror 1.0.69",
- "tokio",
- "uuid",
 ]
 
 [[package]]

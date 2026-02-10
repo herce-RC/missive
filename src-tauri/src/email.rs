@@ -42,6 +42,14 @@ impl EmailClient {
         
         Ok(())
     }
+
+    pub async fn test_imap(&self) -> Result<()> {
+        self.test_imap_connection().await
+    }
+
+    pub async fn test_smtp(&self) -> Result<()> {
+        self.test_smtp_connection().await
+    }
     
     async fn test_smtp_connection(&self) -> Result<()> {
         let mailer = self.build_smtp_transport()?;
@@ -62,9 +70,14 @@ impl EmailClient {
                 .connect()
                 .map_err(|e| EmailError::ImapError(e.to_string()))?;
 
+            let username = account.username.clone();
+            let server = account.imap_server.clone();
             let mut session = client
                 .login(account.username, account.password)
-                .map_err(|e| EmailError::AuthError(e.0.to_string()))?;
+                .map_err(|e| {
+                    log::error!("IMAP login failed server={} user={} err={}", server, username, e.0);
+                    EmailError::AuthError(format!("IMAP AUTH failed: {}", e.0))
+                })?;
 
             session
                 .logout()
@@ -91,9 +104,14 @@ impl EmailClient {
                 .connect()
                 .map_err(|e| EmailError::ImapError(e.to_string()))?;
 
+            let username = account.username.clone();
+            let server = account.imap_server.clone();
             let mut session = client
                 .login(account.username, account.password)
-                .map_err(|e| EmailError::AuthError(e.0.to_string()))?;
+                .map_err(|e| {
+                    log::error!("IMAP login failed server={} user={} err={}", server, username, e.0);
+                    EmailError::AuthError(format!("IMAP AUTH failed: {}", e.0))
+                })?;
 
             let imap_folder = match folder.as_str() {
                 "inbox" => "INBOX",

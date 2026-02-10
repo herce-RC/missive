@@ -1,5 +1,5 @@
 [package]
-name = "tauri-email-client"
+name = "Missive"
 version = "0.1.0"
 description = "A Tauri Email Client with Vue.js frontend and SurrealDB"
 authors = ["you"]
